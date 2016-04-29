@@ -39,7 +39,7 @@ func printWords(words [][]string) {
 
 func main() {
 	// open a file
-	filename := flag.String("in", "input.iespec", "IESPEC input file")
+	filename := flag.String("in", "example.iespec", "IESPEC input file")
 	flag.Parse()
 
 	if file, err := os.Open(*filename); err == nil {
