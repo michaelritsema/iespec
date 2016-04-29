@@ -220,7 +220,7 @@ func main() {
 	i := ipfix.NewInterpreter(s)
 
 	if *dictFile != "" {
-		if err := iespec.LoadUserDictionary(*dictFile, i); err != nil {
+		if err := stuff.LoadUserDictionary(*dictFile, i); err != nil {
 			log.Fatal(err)
 		}
 	}

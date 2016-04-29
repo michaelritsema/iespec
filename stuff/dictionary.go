@@ -1,4 +1,4 @@
-package iespec
+package stuff
 
 import (
 	"gopkg.in/gcfg.v1"
