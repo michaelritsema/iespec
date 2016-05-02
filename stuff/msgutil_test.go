@@ -2,9 +2,17 @@ package stuff
 
 import (
 	"testing"
-	"iespec/stuff"
+	"github.com/golang/protobuf/proto"
+	"iespec"
+	"log"
 )
 
 func TestWrap(t *testing.T) {
-		_ = stuff.wrap("asdf")
+		msg := &iespec.ZFlow {
+			AgentGUID: proto.String("xxxx"),
+		}
+
+		data, _ := proto.Marshal(msg)
+		msgstr := Wrap("bad_type", data)
+		log.Println(msgstr)
  }
