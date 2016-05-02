@@ -9,8 +9,10 @@ import (
 	"iespec/protomsg"
 	"io"
 	"log"
-	"os"
+	//"os"
 	"time"
+	"net"
+	"fmt"
 	//"encoding/binary"
 )
 
@@ -191,6 +193,22 @@ func messagesGenerator(r io.Reader, s *ipfix.Session, i *ipfix.Interpreter) <-ch
 }
 
 func main() {
+	serverAddr,_ := net.ResolveUDPAddr("udp",":4739")
+	ln, _ := net.ListenUDP("udp", serverAddr)
+	defer ln.Close() 
+
+    r,w := io.Pipe()
+
+	go func(writer io.Writer) {
+		buf := make([]byte, 64000)
+		for {
+			n,_,_ := ln.ReadFromUDP(buf)
+			fmt.Println(n)
+			//fmt.Println("Received ",string(buf[0:n]))
+    	    w.Write(buf[0:n])
+		}	
+	}(w)
+
 	//log.Println("ipfixcat", ipfixcatVersion)
 	dictFile := flag.String("dict", "", "User dictionary file")
 	messageStats := flag.Bool("mstats", false, "Log IPFIX message statistics")
@@ -198,18 +216,6 @@ func main() {
 	output := flag.Bool("output", true, "Display received flow records in JSON format")
 	statsIntv := flag.Int("statsintv", 60, "Statistics log interval (s)")
 	flag.Parse()
-
-	if *messageStats {
-		log.Printf("Logging message statistics every %d seconds", *statsIntv)
-	}
-
-	if *trafficStats {
-		log.Printf("Logging traffic rates every %d seconds", *statsIntv)
-	}
-
-	if !*messageStats && !*trafficStats && !*output {
-		log.Fatal("If you don't want me to do anything, don't run me at all.")
-	}
 
 	s := ipfix.NewSession()
 	i := ipfix.NewInterpreter(s)
@@ -220,7 +226,8 @@ func main() {
 		}
 	}
 
-	msgs := messagesGenerator(os.Stdin, s, i)
+
+	msgs := messagesGenerator(r, s, i)
 	tick := time.Tick(time.Duration(*statsIntv) * time.Second)
 	//enc := json.NewEncoder(os.Stdout)
 	for {
