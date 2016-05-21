@@ -1,8 +1,8 @@
 package stuff
 
 import (
-	"gopkg.in/gcfg.v1"
 	"github.com/calmh/ipfix"
+	"gopkg.in/gcfg.v1"
 )
 
 type Field struct {
@@ -22,6 +22,12 @@ func (f Field) DictionaryEntry(name string) ipfix.DictionaryEntry {
 
 type UserDictionary struct {
 	Field map[string]*Field
+}
+
+func LoadINI(fname string) UserDictionary {
+	dict := UserDictionary{}
+	_ = gcfg.ReadFileInto(&dict, fname)
+	return dict
 }
 
 func LoadUserDictionary(fname string, i *ipfix.Interpreter) error {
