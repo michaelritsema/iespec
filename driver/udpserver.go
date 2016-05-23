@@ -19,13 +19,13 @@ func handleZflow(b []byte, s *ipfix.Session, i *ipfix.Interpreter) []*protomsg.Z
 
 	msg, _ := s.ParseBuffer(b)
 	//if len(msg.DataRecords) > 0 {
-	fmt.Printf("Template Records: %d DataRecords: %d\n", len(msg.TemplateRecords), len(msg.DataRecords))
+	//fmt.Printf("Template Records: %d DataRecords: %d\n", len(msg.TemplateRecords), len(msg.DataRecords))
 	//}
 
 	pmsgList := make([]*protomsg.ZFlow, 0)
 
 	for _, rec := range msg.DataRecords {
-		fmt.Printf("\n\n")
+
 		//fmt.Printf("\nRecord %d : %s\n\n", j, rec)
 		ifs := i.Interpret(rec)
 		/*
@@ -80,7 +80,7 @@ func main() {
 	defer ln.Close()
 
 	for {
-		fmt.Print(".")
+		//fmt.Print(".")
 		buf := make([]byte, 64000)
 		n, _, _ := ln.ReadFromUDP(buf)
 

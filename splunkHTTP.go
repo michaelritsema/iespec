@@ -15,7 +15,8 @@ func SplunkPOST(jsonString string) {
 	req, _ := http.NewRequest("POST", URL, strings.NewReader(postBody))
 	req.Header.Add("Authorization", "Splunk "+authHeaderKey)
 
-	_, err := client.Do(req)
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
 	if err != nil {
 		fmt.Println(err)
 	}
