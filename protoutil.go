@@ -1,9 +1,9 @@
 package iespec
 
 import (
+	"fmt"
 	"github.com/calmh/ipfix"
 	"github.com/golang/protobuf/proto"
-
 	"iespec/protomsg"
 )
 
@@ -11,6 +11,7 @@ func ConvertFieldListToProtobuf(fieldList []ipfix.InterpretedField) *protomsg.ZF
 	pmsg := &protomsg.ZFlow{}
 
 	for _, field := range fieldList {
+
 		switch field.Name {
 
 		case "protocolIdentifier":
@@ -107,14 +108,22 @@ func ConvertFieldListToProtobuf(fieldList []ipfix.InterpretedField) *protomsg.ZF
 		case "zflowOSVersion":
 			pmsg.ZflowOSVersion = proto.String(field.Value.(string))
 		case "sourceIPv4Address":
-			pmsg.SourceIPv4Address = field.RawValue
+			fmt.Println(field.Name)
+			fmt.Println(field.Value)
+			pmsg.SourceIPv4Address = field.Value
 		case "sourceTransportPort":
 			pmsg.SourceTransportPort = proto.Int32(int32(field.Value.(uint16)))
 		case "destinationIPv4Address":
+			fmt.Println(field.Name)
+			fmt.Println(field.Value)
 			pmsg.DestinationIPv4Address = field.RawValue
 		case "sourceIPv6Address":
+			fmt.Println(field.Name)
+			fmt.Println(field.Value)
 			pmsg.SourceIPv6Address = field.RawValue
 		case "destinationIPv6Address":
+			fmt.Println(field.Name)
+			fmt.Println(field.Value)
 			pmsg.DestinationIPv6Address = field.RawValue
 
 		}

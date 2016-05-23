@@ -5,9 +5,9 @@ message ZFlow {
   	optional int64 timeStamp = 1;
     optional string agentGUID = 2;
 	optional int32 protocolIdentifier = 3;
-	optional bytes sourceIPv4Address  = 4;
+	optional string sourceIPv4Address  = 4;
 	optional int32 sourceTransportPort  = 5;
-	optional bytes destinationIPv4Address  = 6;
+	optional string destinationIPv4Address  = 6;
 	optional int32 destinationTransportPort  = 7;
 	optional int64 octetDeltaCount  = 8;
 	optional int64 packetDeltaCount  = 9;
@@ -53,6 +53,6 @@ message ZFlow {
 	optional string zflowMachineName  = 49;
 	optional string zflowOSName  = 50;
 	optional string zflowOSVersion  = 51;
-	optional bytes sourceIPv6Address  = 52;
-	optional bytes destinationIPv6Address  = 53;
+	optional string sourceIPv6Address  = 52;
+	optional string destinationIPv6Address  = 53;
 }
