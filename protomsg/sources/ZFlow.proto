@@ -53,4 +53,6 @@ message ZFlow {
 	optional string zflowMachineName  = 49;
 	optional string zflowOSName  = 50;
 	optional string zflowOSVersion  = 51;
+	optional bytes sourceIPv6Address  = 52;
+	optional bytes destinationIPv6Address  = 53;
 }

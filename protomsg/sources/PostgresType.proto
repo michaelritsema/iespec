@@ -1,0 +1,9 @@
+option java_package = "com.ziften.server.protocol.message";
+option java_outer_classname = "PostgresType";
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.FieldOptions 
+{
+    optional string postgresType = 50000;
+}

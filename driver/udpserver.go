@@ -48,6 +48,7 @@ func printEncoded(buf []byte) {
 
 type outputOptions struct {
 	STDOUT_JSON bool
+	SPLUNK_HTTP bool
 }
 
 func processMsg(msg *protomsg.ZFlow, output outputOptions) {
@@ -55,6 +56,12 @@ func processMsg(msg *protomsg.ZFlow, output outputOptions) {
 		marshaler := jsonpb.Marshaler{}
 		jsonMsg, _ := marshaler.MarshalToString(msg)
 		fmt.Println(jsonMsg)
+	}
+
+	if output.SPLUNK_HTTP {
+		marshaler := jsonpb.Marshaler{}
+		jsonString, _ := marshaler.MarshalToString(msg)
+		iespec.SplunkPOST(jsonString)
 	}
 }
 
@@ -80,7 +87,7 @@ func main() {
 		if doZflow {
 			pmsgList := handleZflow(buf[:n], s, i)
 			for _, msg := range pmsgList {
-				processMsg(msg, outputOptions{STDOUT_JSON: true})
+				processMsg(msg, outputOptions{STDOUT_JSON: false, SPLUNK_HTTP: true})
 			}
 		}
 		if doPrintEncoded {

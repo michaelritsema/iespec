@@ -112,6 +112,10 @@ func ConvertFieldListToProtobuf(fieldList []ipfix.InterpretedField) *protomsg.ZF
 			pmsg.SourceTransportPort = proto.Int32(int32(field.Value.(uint16)))
 		case "destinationIPv4Address":
 			pmsg.DestinationIPv4Address = field.RawValue
+		case "sourceIPv6Address":
+			pmsg.SourceIPv6Address = field.RawValue
+		case "destinationIPv6Address":
+			pmsg.DestinationIPv6Address = field.RawValue
 
 		}
 	}
