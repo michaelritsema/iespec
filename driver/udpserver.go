@@ -6,6 +6,7 @@ import (
 	"github.com/calmh/ipfix"
 	"github.com/golang/protobuf/jsonpb"
 	"iespec"
+	"iespec/protomsg"
 	"net"
 	//"reflect"
 )
@@ -14,13 +15,14 @@ func handleConnection(conn net.Conn) {
 
 }
 
-func handleZflow(b []byte, s *ipfix.Session, i *ipfix.Interpreter) {
+func handleZflow(b []byte, s *ipfix.Session, i *ipfix.Interpreter) []*protomsg.ZFlow {
 
 	msg, _ := s.ParseBuffer(b)
 	//if len(msg.DataRecords) > 0 {
 	fmt.Printf("Template Records: %d DataRecords: %d\n", len(msg.TemplateRecords), len(msg.DataRecords))
 	//}
-	marshaler := jsonpb.Marshaler{}
+
+	pmsgList := make([]*protomsg.ZFlow, 0)
 
 	for _, rec := range msg.DataRecords {
 		fmt.Printf("\n\n")
@@ -34,14 +36,26 @@ func handleZflow(b []byte, s *ipfix.Session, i *ipfix.Interpreter) {
 			}
 		*/
 		pmsg := iespec.ConvertFieldListToProtobuf(ifs)
-		jsonMsg, _ := marshaler.MarshalToString(pmsg)
-		fmt.Println(jsonMsg)
+		pmsgList = append(pmsgList, pmsg)
 	}
+	return pmsgList
 }
 
 func printEncoded(buf []byte) {
 	encoded := base64.StdEncoding.EncodeToString(buf)
 	fmt.Println(encoded)
+}
+
+type outputOptions struct {
+	STDOUT_JSON bool
+}
+
+func processMsg(msg *protomsg.ZFlow, output outputOptions) {
+	if output.STDOUT_JSON {
+		marshaler := jsonpb.Marshaler{}
+		jsonMsg, _ := marshaler.MarshalToString(msg)
+		fmt.Println(jsonMsg)
+	}
 }
 
 func main() {
@@ -64,7 +78,10 @@ func main() {
 		n, _, _ := ln.ReadFromUDP(buf)
 
 		if doZflow {
-			handleZflow(buf[:n], s, i)
+			pmsgList := handleZflow(buf[:n], s, i)
+			for _, msg := range pmsgList {
+				processMsg(msg, outputOptions{STDOUT_JSON: true})
+			}
 		}
 		if doPrintEncoded {
 			printEncoded(buf[:n])
