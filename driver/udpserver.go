@@ -4,9 +4,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/calmh/ipfix"
+	"github.com/golang/protobuf/jsonpb"
 	"iespec"
 	"net"
-	"reflect"
+	//"reflect"
 )
 
 func handleConnection(conn net.Conn) {
@@ -19,15 +20,22 @@ func handleZflow(b []byte, s *ipfix.Session, i *ipfix.Interpreter) {
 	//if len(msg.DataRecords) > 0 {
 	fmt.Printf("Template Records: %d DataRecords: %d\n", len(msg.TemplateRecords), len(msg.DataRecords))
 	//}
+	marshaler := jsonpb.Marshaler{}
+
 	for _, rec := range msg.DataRecords {
 		fmt.Printf("\n\n")
 		//fmt.Printf("\nRecord %d : %s\n\n", j, rec)
 		ifs := i.Interpret(rec)
-		for _, ifield := range ifs {
-			if ifield.Value != nil {
-				fmt.Printf("Field: %s, Value: %s Type: %s \n", ifield.Name, ifield.Value, reflect.TypeOf(ifield.Value))
+		/*
+			for _, ifield := range ifs {
+				if ifield.Value != nil {
+					fmt.Printf("Field: %s, Value: %s Type: %s \n", ifield.Name, ifield.Value, reflect.TypeOf(ifield.Value))
+				}
 			}
-		}
+		*/
+		pmsg := iespec.ConvertFieldListToProtobuf(ifs)
+		jsonMsg, _ := marshaler.MarshalToString(pmsg)
+		fmt.Println(jsonMsg)
 	}
 }
 
