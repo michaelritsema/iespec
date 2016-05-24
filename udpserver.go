@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/calmh/ipfix"
-	"github.com/golang/protobuf/jsonpb"
 	"iespec/protomsg"
 	"net"
 )
@@ -27,37 +26,13 @@ func printEncoded(buf []byte) {
 	fmt.Println(encoded)
 }
 
-type outputOptions struct {
-	STDOUT_JSON bool
-	SPLUNK_HTTP bool
-	BROADCAST   bool
-}
-
-func processMsg(msg *protomsg.ZFlow, output outputOptions) {
-	if output.STDOUT_JSON {
-		marshaler := jsonpb.Marshaler{}
-		jsonMsg, _ := marshaler.MarshalToString(msg)
-		fmt.Println(jsonMsg)
-	}
-
-	if output.SPLUNK_HTTP {
-		marshaler := jsonpb.Marshaler{}
-		jsonString, _ := marshaler.MarshalToString(msg)
-		SplunkPOST(jsonString)
-	}
-
-}
-
-func broadcast(c, msg *protomsg.ZFlow) {
-
-}
-
 func UDPServer(c chan *protomsg.ZFlow, host string, port string) {
 
 	doPrintEncoded := false
-	doZflow := true
+
 	s := ipfix.NewSession()
 	i := ipfix.NewInterpreter(s)
+
 	for _, entry := range MyFields {
 		i.AddDictionaryEntry(entry)
 	}
@@ -70,13 +45,11 @@ func UDPServer(c chan *protomsg.ZFlow, host string, port string) {
 		buf := make([]byte, 64000)
 		n, _, _ := ln.ReadFromUDP(buf)
 
-		if doZflow {
-			pmsgList := handleZflow(buf[:n], s, i)
-			for _, msg := range pmsgList {
-				processMsg(msg, outputOptions{STDOUT_JSON: false, SPLUNK_HTTP: true})
-				c <- msg
-			}
+		pmsgList := handleZflow(buf[:n], s, i)
+		for _, msg := range pmsgList {
+			c <- msg
 		}
+
 		if doPrintEncoded {
 			printEncoded(buf[:n])
 		}

@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-func SplunkPOST(jsonString string) {
+func SplunkPOST(config string, jsonString string) {
+
 	URL := "http://localhost:8088/services/collector"
 	client := &http.Client{}
 	postBody := "{\"event\" : " + jsonString + "}"
@@ -18,6 +19,7 @@ func SplunkPOST(jsonString string) {
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	if err != nil {
+		fmt.Println(config)
 		fmt.Println(err)
 	}
 	//fmt.Println(resp)

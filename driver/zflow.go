@@ -96,14 +96,44 @@ func serveudp(param string) {
 }
 
 var broadcast chan *protomsg.ZFlow = make(chan *protomsg.ZFlow)
+var outbound map[string]chan *protomsg.ZFlow = make(map[string]chan *protomsg.ZFlow, 0)
 
-func printJSON() {
+func route() {
 	go func() {
 		for {
 			msg := <-broadcast
+			for k, v := range outbound {
+				fmt.Printf("routing to outbound channel [%s]\n", k)
+				v <- msg
+			}
+		}
+	}()
+}
+
+func printJSON() {
+	c := make(chan *protomsg.ZFlow)
+	outbound[OUTBOUND_JSON] = c
+
+	go func() {
+		for {
+			msg := <-outbound[OUTBOUND_JSON]
 			marshaler := jsonpb.Marshaler{}
 			jsonMsg, _ := marshaler.MarshalToString(msg)
 			fmt.Println(jsonMsg)
+		}
+	}()
+}
+
+func splunk(param string) {
+	c := make(chan *protomsg.ZFlow)
+	outbound[OUTBOUND_SPLUNK] = c
+
+	go func() {
+		for {
+			msg := <-outbound[OUTBOUND_SPLUNK]
+			marshaler := jsonpb.Marshaler{}
+			jsonMsg, _ := marshaler.MarshalToString(msg)
+			iespec.SplunkPOST(param, jsonMsg)
 		}
 	}()
 }
@@ -122,6 +152,8 @@ func main() {
 
 	daemonize := false
 
+	route()
+
 	if isSet(INBOUND_HTTP) {
 		servehttp(*inboundHTTP)
 		daemonize = true
@@ -139,7 +171,7 @@ func main() {
 		daemonize = true
 	}
 	if isSet(OUTBOUND_SPLUNK) {
-		fmt.Println(*outboundSplunk)
+		splunk(*outboundSplunk)
 	}
 	if isSet(OUTBOUND_KAFKA) {
 		fmt.Println(*outboundKafka)
