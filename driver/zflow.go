@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/protobuf/jsonpb"
-	"iespec"
+	"iespec/inbound"
 	"iespec/outbound"
 	"iespec/protomsg"
 	"os"
@@ -93,7 +93,7 @@ func serveudp(param string) {
 	host := parts[0]
 	port := parts[1]
 
-	iespec.UDPServer(broadcast, host, port)
+	inbound.UDPServer(broadcast, host, port)
 }
 
 var broadcast chan *protomsg.ZFlow = make(chan *protomsg.ZFlow)

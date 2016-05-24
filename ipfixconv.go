@@ -5,12 +5,12 @@ import (
 	"iespec/protomsg"
 )
 
-type converter struct {
+type Converter struct {
 	s *ipfix.Session
 	i *ipfix.Interpreter
 }
 
-func initIpfix() (c *converter) {
+func InitIpfix() (c *Converter) {
 
 	s := ipfix.NewSession()
 	i := ipfix.NewInterpreter(s)
@@ -18,14 +18,14 @@ func initIpfix() (c *converter) {
 	for _, entry := range MyFields {
 		i.AddDictionaryEntry(entry)
 	}
-	c = &converter{
+	c = &Converter{
 		s: s,
 		i: i,
 	}
 	return c
 }
 
-func (c converter) convert(b []byte) []*protomsg.ZFlow {
+func (c Converter) Convert(b []byte) []*protomsg.ZFlow {
 	msg, _ := c.s.ParseBuffer(b)
 	pmsgList := make([]*protomsg.ZFlow, 0)
 
