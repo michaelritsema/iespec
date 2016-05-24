@@ -7,34 +7,15 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"iespec/protomsg"
 	"net"
-	//"strings"
-	//"reflect"
 )
-
-func handleConnection(conn net.Conn) {
-
-}
 
 func handleZflow(b []byte, s *ipfix.Session, i *ipfix.Interpreter) []*protomsg.ZFlow {
 
 	msg, _ := s.ParseBuffer(b)
-	//if len(msg.DataRecords) > 0 {
-	//fmt.Printf("Template Records: %d DataRecords: %d\n", len(msg.TemplateRecords), len(msg.DataRecords))
-	//}
-
 	pmsgList := make([]*protomsg.ZFlow, 0)
 
 	for _, rec := range msg.DataRecords {
-
-		//fmt.Printf("\nRecord %d : %s\n\n", j, rec)
 		ifs := i.Interpret(rec)
-		/*
-			for _, ifield := range ifs {
-				if ifield.Value != nil {
-					fmt.Printf("Field: %s, Value: %s Type: %s \n", ifield.Name, ifield.Value, reflect.TypeOf(ifield.Value))
-				}
-			}
-		*/
 		pmsg := ConvertFieldListToProtobuf(ifs)
 		pmsgList = append(pmsgList, pmsg)
 	}
@@ -49,6 +30,7 @@ func printEncoded(buf []byte) {
 type outputOptions struct {
 	STDOUT_JSON bool
 	SPLUNK_HTTP bool
+	BROADCAST   bool
 }
 
 func processMsg(msg *protomsg.ZFlow, output outputOptions) {
@@ -63,31 +45,28 @@ func processMsg(msg *protomsg.ZFlow, output outputOptions) {
 		jsonString, _ := marshaler.MarshalToString(msg)
 		SplunkPOST(jsonString)
 	}
+
 }
 
-func UDPServer(host string, port string) {
+func broadcast(c, msg *protomsg.ZFlow) {
 
-	if host == "" {
-		host = "[localhost]"
-	} else {
-		host = "[" + host + "]"
-	}
+}
+
+func UDPServer(c chan *protomsg.ZFlow, host string, port string) {
 
 	doPrintEncoded := false
 	doZflow := true
 	s := ipfix.NewSession()
 	i := ipfix.NewInterpreter(s)
 	for _, entry := range MyFields {
-		//fmt.Println(entry)
 		i.AddDictionaryEntry(entry)
 	}
 
-	serverAddr, _ := net.ResolveUDPAddr("udp", "["+host+"]:"+port)
+	serverAddr, _ := net.ResolveUDPAddr("udp", host+":"+port)
 	ln, _ := net.ListenUDP("udp", serverAddr)
 	defer ln.Close()
 
 	for {
-		//fmt.Print(".")
 		buf := make([]byte, 64000)
 		n, _, _ := ln.ReadFromUDP(buf)
 
@@ -95,10 +74,12 @@ func UDPServer(host string, port string) {
 			pmsgList := handleZflow(buf[:n], s, i)
 			for _, msg := range pmsgList {
 				processMsg(msg, outputOptions{STDOUT_JSON: false, SPLUNK_HTTP: true})
+				c <- msg
 			}
 		}
 		if doPrintEncoded {
 			printEncoded(buf[:n])
 		}
+
 	}
 }

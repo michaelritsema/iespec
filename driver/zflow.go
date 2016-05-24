@@ -3,9 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/golang/protobuf/jsonpb"
 	"iespec"
+	"iespec/protomsg"
 	"os"
 	"strings"
+	"time"
 )
 
 /*
@@ -89,14 +92,27 @@ func serveudp(param string) {
 	host := parts[0]
 	port := parts[1]
 
-	iespec.UDPServer(host, port)
+	iespec.UDPServer(broadcast, host, port)
+}
+
+var broadcast chan *protomsg.ZFlow = make(chan *protomsg.ZFlow)
+
+func printJSON() {
+	go func() {
+		for {
+			msg := <-broadcast
+			marshaler := jsonpb.Marshaler{}
+			jsonMsg, _ := marshaler.MarshalToString(msg)
+			fmt.Println(jsonMsg)
+		}
+	}()
 }
 
 func main() {
 	inboundHTTP := flag.String(INBOUND_HTTP, "", "Binds HTTP to <host:port>")
-	inboundHTTPS := flag.String(INBOUND_HTTPS, "localhost:9443", "Binds HTTPS to <host:port> (cert.pem and key.pem required in same folder)")
-	inboundKafka := flag.String(INBOUND_KAFKA, "localhost:9092:ZIFTEN.IPFIX", "Enables Inbound Kafka Topic <host:port:topic>")
-	inboundUDP := flag.String(INBOUND_UDP, "localhost:4739", "Enables UDP <host:port>")
+	inboundHTTPS := flag.String(INBOUND_HTTPS, "0.0.0.0:9443", "Binds HTTPS to <host:port> (cert.pem and key.pem required in same folder)")
+	inboundKafka := flag.String(INBOUND_KAFKA, "0.0.0.0:9092:ZIFTEN.IPFIX", "Enables Inbound Kafka Topic <host:port:topic>")
+	inboundUDP := flag.String(INBOUND_UDP, "0.0.0.0:4739", "Enables UDP <host:port>")
 
 	outboundSplunk := flag.String(OUTBOUND_SPLUNK, "http://localhost:8088/services/collector", "Forwards data to Splunk (http://localhost:8088/services/collector) is default")
 	outboundKafka := flag.String(OUTBOUND_KAFKA, "localhost:9092:ZIFTEN.DATACOLLECTION", "Forwards data to Kafka <host:port:topic>")
@@ -104,17 +120,23 @@ func main() {
 
 	flag.Parse()
 
+	daemonize := false
+
 	if isSet(INBOUND_HTTP) {
 		servehttp(*inboundHTTP)
+		daemonize = true
 	}
 	if isSet(INBOUND_HTTPS) {
 		servehttps(*inboundHTTPS)
+		daemonize = true
 	}
 	if isSet(INBOUND_KAFKA) {
 		readfromkafka(*inboundKafka)
+		daemonize = true
 	}
 	if isSet(INBOUND_UDP) {
-		serveudp(*inboundUDP)
+		go serveudp(*inboundUDP)
+		daemonize = true
 	}
 	if isSet(OUTBOUND_SPLUNK) {
 		fmt.Println(*outboundSplunk)
@@ -122,7 +144,14 @@ func main() {
 	if isSet(OUTBOUND_KAFKA) {
 		fmt.Println(*outboundKafka)
 	}
-	if isSet(OUTBOUND_JSON) {
-		fmt.Println(*outboundJSON)
+	if *outboundJSON {
+		printJSON()
 	}
+
+	if daemonize {
+		for {
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+
 }
