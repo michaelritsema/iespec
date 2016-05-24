@@ -83,16 +83,20 @@ func readfromkafka(address string) {
 	fmt.Printf("Reading messages for Kafka: %s", address)
 }
 
-func serveudp(address string) {
-	fmt.Printf("Listening on UDP %s", address)
-	iespec.UDPServer()
+func serveudp(param string) {
+	fmt.Printf("Listening on UDP %s\n", param)
+	parts := strings.Split(param, ":")
+	host := parts[0]
+	port := parts[1]
+
+	iespec.UDPServer(host, port)
 }
 
 func main() {
 	inboundHTTP := flag.String(INBOUND_HTTP, "", "Binds HTTP to <host:port>")
 	inboundHTTPS := flag.String(INBOUND_HTTPS, "localhost:9443", "Binds HTTPS to <host:port> (cert.pem and key.pem required in same folder)")
 	inboundKafka := flag.String(INBOUND_KAFKA, "localhost:9092:ZIFTEN.IPFIX", "Enables Inbound Kafka Topic <host:port:topic>")
-	inboundUDP := flag.String(INBOUND_UDP, "4739", "Enables UDP <host:port>")
+	inboundUDP := flag.String(INBOUND_UDP, "localhost:4739", "Enables UDP <host:port>")
 
 	outboundSplunk := flag.String(OUTBOUND_SPLUNK, "http://localhost:8088/services/collector", "Forwards data to Splunk (http://localhost:8088/services/collector) is default")
 	outboundKafka := flag.String(OUTBOUND_KAFKA, "localhost:9092:ZIFTEN.DATACOLLECTION", "Forwards data to Kafka <host:port:topic>")

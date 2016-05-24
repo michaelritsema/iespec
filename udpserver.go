@@ -7,6 +7,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"iespec/protomsg"
 	"net"
+	//"strings"
 	//"reflect"
 )
 
@@ -64,7 +65,14 @@ func processMsg(msg *protomsg.ZFlow, output outputOptions) {
 	}
 }
 
-func UDPServer() {
+func UDPServer(host string, port string) {
+
+	if host == "" {
+		host = "[localhost]"
+	} else {
+		host = "[" + host + "]"
+	}
+
 	doPrintEncoded := false
 	doZflow := true
 	s := ipfix.NewSession()
@@ -74,7 +82,7 @@ func UDPServer() {
 		i.AddDictionaryEntry(entry)
 	}
 
-	serverAddr, _ := net.ResolveUDPAddr("udp", ":4739")
+	serverAddr, _ := net.ResolveUDPAddr("udp", "["+host+"]:"+port)
 	ln, _ := net.ListenUDP("udp", serverAddr)
 	defer ln.Close()
 
