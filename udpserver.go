@@ -1,11 +1,10 @@
-package main
+package iespec
 
 import (
 	"encoding/base64"
 	"fmt"
 	"github.com/calmh/ipfix"
 	"github.com/golang/protobuf/jsonpb"
-	"iespec"
 	"iespec/protomsg"
 	"net"
 	//"reflect"
@@ -35,7 +34,7 @@ func handleZflow(b []byte, s *ipfix.Session, i *ipfix.Interpreter) []*protomsg.Z
 				}
 			}
 		*/
-		pmsg := iespec.ConvertFieldListToProtobuf(ifs)
+		pmsg := ConvertFieldListToProtobuf(ifs)
 		pmsgList = append(pmsgList, pmsg)
 	}
 	return pmsgList
@@ -61,16 +60,16 @@ func processMsg(msg *protomsg.ZFlow, output outputOptions) {
 	if output.SPLUNK_HTTP {
 		marshaler := jsonpb.Marshaler{}
 		jsonString, _ := marshaler.MarshalToString(msg)
-		iespec.SplunkPOST(jsonString)
+		SplunkPOST(jsonString)
 	}
 }
 
-func main() {
+func UDPServer() {
 	doPrintEncoded := false
 	doZflow := true
 	s := ipfix.NewSession()
 	i := ipfix.NewInterpreter(s)
-	for _, entry := range iespec.MyFields {
+	for _, entry := range MyFields {
 		//fmt.Println(entry)
 		i.AddDictionaryEntry(entry)
 	}
