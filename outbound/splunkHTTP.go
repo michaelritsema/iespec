@@ -1,4 +1,4 @@
-package iespec
+package outbound
 
 import (
 	"fmt"

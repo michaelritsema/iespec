@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/jsonpb"
 	"iespec"
+	"iespec/outbound"
 	"iespec/protomsg"
 	"os"
 	"strings"
@@ -96,13 +97,13 @@ func serveudp(param string) {
 }
 
 var broadcast chan *protomsg.ZFlow = make(chan *protomsg.ZFlow)
-var outbound map[string]chan *protomsg.ZFlow = make(map[string]chan *protomsg.ZFlow, 0)
+var outChannels map[string]chan *protomsg.ZFlow = make(map[string]chan *protomsg.ZFlow, 0)
 
 func route() {
 	go func() {
 		for {
 			msg := <-broadcast
-			for k, v := range outbound {
+			for k, v := range outChannels {
 				fmt.Printf("routing to outbound channel [%s]\n", k)
 				v <- msg
 			}
@@ -112,11 +113,11 @@ func route() {
 
 func printJSON() {
 	c := make(chan *protomsg.ZFlow)
-	outbound[OUTBOUND_JSON] = c
+	outChannels[OUTBOUND_JSON] = c
 
 	go func() {
 		for {
-			msg := <-outbound[OUTBOUND_JSON]
+			msg := <-outChannels[OUTBOUND_JSON]
 			marshaler := jsonpb.Marshaler{}
 			jsonMsg, _ := marshaler.MarshalToString(msg)
 			fmt.Println(jsonMsg)
@@ -126,14 +127,14 @@ func printJSON() {
 
 func splunk(param string) {
 	c := make(chan *protomsg.ZFlow)
-	outbound[OUTBOUND_SPLUNK] = c
+	outChannels[OUTBOUND_SPLUNK] = c
 
 	go func() {
 		for {
-			msg := <-outbound[OUTBOUND_SPLUNK]
+			msg := <-outChannels[OUTBOUND_SPLUNK]
 			marshaler := jsonpb.Marshaler{}
 			jsonMsg, _ := marshaler.MarshalToString(msg)
-			iespec.SplunkPOST(param, jsonMsg)
+			outbound.SplunkPOST(param, jsonMsg)
 		}
 	}()
 }
