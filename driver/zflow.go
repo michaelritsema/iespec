@@ -85,6 +85,7 @@ func servehttps(address string) {
 
 func readfromkafka(address string) {
 	fmt.Printf("Reading messages for Kafka: %s", address)
+	inbound.Kafka(broadcast)
 }
 
 func serveudp(param string) {
@@ -103,17 +104,16 @@ func route() {
 	go func() {
 		for {
 			msg := <-broadcast
-			for k, v := range outChannels {
-				fmt.Printf("routing to outbound channel [%s]\n", k)
+			//fmt.Println(msg)
+			for _, v := range outChannels {
+				//fmt.Printf("routing to outbound channel [%s]\n", k)
 				v <- msg
 			}
 		}
 	}()
 }
 
-func printJSON() {
-	c := make(chan *protomsg.ZFlow)
-	outChannels[OUTBOUND_JSON] = c
+func printJSON(c chan *protomsg.ZFlow) {
 
 	go func() {
 		for {
@@ -123,6 +123,10 @@ func printJSON() {
 			fmt.Println(jsonMsg)
 		}
 	}()
+}
+
+func kafka(msg chan *protomsg.ZFlow) {
+	outbound.Kafka(msg)
 }
 
 func splunk(param string) {
@@ -176,9 +180,17 @@ func main() {
 	}
 	if isSet(OUTBOUND_KAFKA) {
 		fmt.Println(*outboundKafka)
+		c := make(chan *protomsg.ZFlow)
+		outChannels[OUTBOUND_KAFKA] = c
+		kafka(c)
 	}
 	if *outboundJSON {
-		printJSON()
+		c := make(chan *protomsg.ZFlow)
+		outChannels[OUTBOUND_JSON] = c
+		for k, _ := range outChannels {
+			fmt.Println(k)
+		}
+		printJSON(c)
 	}
 
 	if daemonize {
