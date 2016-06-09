@@ -105,8 +105,8 @@ func route() {
 		for {
 			msg := <-broadcast
 			//fmt.Println(msg)
-			for _, v := range outChannels {
-				//fmt.Printf("routing to outbound channel [%s]\n", k)
+			for k, v := range outChannels {
+				fmt.Printf("routing to outbound channel [%s]\n", k)
 				v <- msg
 			}
 		}
@@ -125,8 +125,8 @@ func printJSON(c chan *protomsg.ZFlow) {
 	}()
 }
 
-func kafka(msg chan *protomsg.ZFlow) {
-	outbound.Kafka(msg)
+func kafka(c chan *protomsg.ZFlow) {
+	outbound.Kafka(c)
 }
 
 func splunk(param string) {

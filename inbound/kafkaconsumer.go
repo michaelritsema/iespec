@@ -66,6 +66,7 @@ func Kafka(protoMsgChan chan *protomsg.ZFlow) {
 			for _, c := range consumers {
 				select {
 				case msg := <-c.Messages():
+
 					for _, ipfixList := range stripXML(msg.Value) {
 						for _, zflowMsg := range converter.Convert(ipfixList) {
 							//fmt.Println(zflowMsg)
