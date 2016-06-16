@@ -69,9 +69,11 @@ const (
 	INBOUND_HTTPS   = "inbound-https"
 	INBOUND_KAFKA   = "inbound-kafka"
 	INBOUND_UDP     = "inbound-udp"
+	INBOUND_PCAP    = "inbound-pcap"
 	OUTBOUND_SPLUNK = "outbound-splunk"
 	OUTBOUND_KAFKA  = "outbound-kafka"
 	OUTBOUND_JSON   = "outbound-json"
+	OUTBOUND_CSV    = "outbound-csv"
 )
 
 func servehttp(address string) {
@@ -85,7 +87,12 @@ func servehttps(address string) {
 
 func readfromkafka(address string) {
 	fmt.Printf("Reading messages for Kafka: %s", address)
-	inbound.Kafka(broadcast)
+	inbound.Kafka() //broadcast)
+}
+
+func readfrompcap(file string) {
+	fmt.Printf("Reading from pcap")
+	inbound.Readpcapfile(broadcast, file)
 }
 
 func serveudp(param string) {
@@ -105,8 +112,8 @@ func route() {
 		for {
 			msg := <-broadcast
 			//fmt.Println(msg)
-			for k, v := range outChannels {
-				fmt.Printf("routing to outbound channel [%s]\n", k)
+			for _, v := range outChannels {
+				//fmt.Printf("routing to outbound channel [%s]\n", k)
 				v <- msg
 			}
 		}
@@ -118,11 +125,25 @@ func printJSON(c chan *protomsg.ZFlow) {
 	go func() {
 		for {
 			msg := <-outChannels[OUTBOUND_JSON]
+
 			marshaler := jsonpb.Marshaler{}
 			jsonMsg, _ := marshaler.MarshalToString(msg)
 			fmt.Println(jsonMsg)
 		}
 	}()
+}
+
+func printCSV(c chan *protomsg.ZFlow) {
+
+	/*go func() {
+		for {
+			msg := <-outChannels[OUTBOUND_CSV]
+			//bytes := make([]byte, 0)
+			//marshaler := jsonpb.Marshaler{}
+			//jsonMsg, _ := marshaler.Marshal(bytes, msg)
+			//fmt.Println(bytes)
+		}
+	}()*/
 }
 
 func kafka(c chan *protomsg.ZFlow) {
@@ -148,10 +169,12 @@ func main() {
 	inboundHTTPS := flag.String(INBOUND_HTTPS, "0.0.0.0:9443", "Binds HTTPS to <host:port> (cert.pem and key.pem required in same folder)")
 	inboundKafka := flag.String(INBOUND_KAFKA, "0.0.0.0:9092:ZIFTEN.IPFIX", "Enables Inbound Kafka Topic <host:port:topic>")
 	inboundUDP := flag.String(INBOUND_UDP, "0.0.0.0:4739", "Enables UDP <host:port>")
+	inboundPCAP := flag.String(INBOUND_PCAP, "file.pcap", "PCAP file")
 
 	outboundSplunk := flag.String(OUTBOUND_SPLUNK, "http://localhost:8088/services/collector", "Forwards data to Splunk (http://localhost:8088/services/collector) is default")
 	outboundKafka := flag.String(OUTBOUND_KAFKA, "localhost:9092:ZIFTEN.DATACOLLECTION", "Forwards data to Kafka <host:port:topic>")
 	outboundJSON := flag.Bool(OUTBOUND_JSON, false, "Prints to STDOUT in JSON")
+	outboundCSV := flag.Bool(OUTBOUND_CSV, false, "Prints to STDOUT in CSV")
 
 	flag.Parse()
 
@@ -175,6 +198,10 @@ func main() {
 		go serveudp(*inboundUDP)
 		daemonize = true
 	}
+	if isSet(INBOUND_PCAP) {
+		go readfrompcap(*inboundPCAP)
+		daemonize = true
+	}
 	if isSet(OUTBOUND_SPLUNK) {
 		splunk(*outboundSplunk)
 	}
@@ -187,10 +214,15 @@ func main() {
 	if *outboundJSON {
 		c := make(chan *protomsg.ZFlow)
 		outChannels[OUTBOUND_JSON] = c
-		for k, _ := range outChannels {
-			fmt.Println(k)
-		}
+
 		printJSON(c)
+	}
+
+	if *outboundCSV {
+		c := make(chan *protomsg.ZFlow)
+		outChannels[OUTBOUND_CSV] = c
+
+		printCSV(c)
 	}
 
 	if daemonize {

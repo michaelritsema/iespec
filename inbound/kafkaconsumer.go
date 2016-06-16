@@ -1,21 +1,22 @@
 package inbound
 
 import (
-	"encoding/base64"
+	//"encoding/base64"
 	"fmt"
 	"github.com/Shopify/sarama"
-	"github.com/golang/protobuf/proto"
-	"iespec"
-	"iespec/protomsg"
+	"sync"
+	//"github.com/golang/protobuf/proto"
+	//"iespec"
+	//"iespec/protomsg"
 	//"io"
-	"log"
-	"os"
+	//	"time"
 )
 
 /*
 	takes in <pb> </pb>
 	returns array of ipfix messages as [][]byte
 */
+/*
 func stripXML(msg []byte) [][]byte {
 	payload := msg[66 : len(msg)-5]
 	bytes, _ := base64.StdEncoding.DecodeString(string(payload))
@@ -24,10 +25,10 @@ func stripXML(msg []byte) [][]byte {
 
 	return pmsg.GetIpfixMessage()
 }
-func Kafka(protoMsgChan chan *protomsg.ZFlow) {
-	converter := iespec.InitIpfix()
+*/
+func Kafka() {
+	//converter := iespec.InitIpfix()
 
-	log.SetOutput(os.Stdout)
 	//config := sarama.NewConfig()
 
 	//config.Consumer.Return.Errors = true
@@ -61,25 +62,44 @@ func Kafka(protoMsgChan chan *protomsg.ZFlow) {
 		}
 	}
 
-	go func() {
-		for {
-			for _, c := range consumers {
-				select {
-				case msg := <-c.Messages():
+	msgchan := make(chan *sarama.ConsumerMessage, 256)
 
-					for _, ipfixList := range stripXML(msg.Value) {
-						for _, zflowMsg := range converter.Convert(ipfixList) {
-							//fmt.Println(zflowMsg)
-							protoMsgChan <- zflowMsg
+	for x, c := range consumers {
+		fmt.Printf("Init consumer partition %d\n", x)
 
-						}
+		go func(pc sarama.PartitionConsumer) {
+			msgCounter := 0
 
-					}
-				}
+			for {
+				message := <-pc.Messages()
+				msgchan <- message
+
+				msgCounter++
+
+				fmt.Println(msgCounter)
 			}
-		}
-	}()
+		}(c)
 
+		go func() {
+			for msg := range msgchan {
+				//for _, ipfixList := range stripXML(msg.Value) {
+				//for _, zflowMsg := range converter.Convert(ipfixList) {
+				//fmt.Println(zflowMsg)
+				//protoMsgChan <- zflowMsg
+				fmt.Printf("Partition:\t%d\n", msg.Partition)
+				fmt.Printf("Offset:\t%d\n", msg.Offset)
+				fmt.Printf("Key:\t%s\n", string(msg.Key))
+				fmt.Printf("Value:\t%s\n", string(msg.Value))
+				fmt.Println()
+
+				//}
+				//}
+			}
+		}()
+	}
+	var wg sync.WaitGroup
+	wg.Add(1)
+	wg.Wait()
 }
 
 /*
