@@ -2,16 +2,15 @@ package main
 
 import (
 	"fmt"
-	"os"
-	//"github.com/calmh/ipfix"
 	"iespec/stuff"
+	"os"
 )
 
 func main() {
 	dictFile, _ := os.Create("ziften-dictionary.go")
 	dict := stuff.LoadINI("ziften_iespec.ini")
 
-	header := "package iespec\n import (\n \"github.com/calmh/ipfix\"\n)\n var MyFields = [...]ipfix.DictionaryEntry{"
+	header := "package iespec\n import (\n \"github.com/michaelritsema/ipfix\"\n)\n var MyFields = [...]ipfix.DictionaryEntry{"
 	dictFile.WriteString(header)
 	structTemplate := "\nipfix.DictionaryEntry{Name: \"%s\", EnterpriseID: %d, FieldID: %d, Type: ipfix.FieldTypes[\"%s\"],},"
 

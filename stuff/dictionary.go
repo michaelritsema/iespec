@@ -1,7 +1,7 @@
 package stuff
 
 import (
-	"github.com/calmh/ipfix"
+	"github.com/michaelritsema/ipfix"
 	"gopkg.in/gcfg.v1"
 )
 

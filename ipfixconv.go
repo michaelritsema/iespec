@@ -1,7 +1,7 @@
 package iespec
 
 import (
-	"github.com/calmh/ipfix"
+	"github.com/michaelritsema/ipfix"
 	"iespec/protomsg"
 )
 

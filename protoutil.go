@@ -1,8 +1,8 @@
 package iespec
 
 import (
-	"github.com/calmh/ipfix"
 	"github.com/golang/protobuf/proto"
+	"github.com/michaelritsema/ipfix"
 	"iespec/protomsg"
 	"net"
 )
