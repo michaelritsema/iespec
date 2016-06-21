@@ -1,13 +1,13 @@
 package inbound
 
 import (
-	//"encoding/base64"
+	"encoding/base64"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"github.com/golang/protobuf/proto"
+	"iespec"
+	"iespec/protomsg"
 	"sync"
-	//"github.com/golang/protobuf/proto"
-	//"iespec"
-	//"iespec/protomsg"
 	//"io"
 	//	"time"
 )
@@ -16,7 +16,7 @@ import (
 	takes in <pb> </pb>
 	returns array of ipfix messages as [][]byte
 */
-/*
+
 func stripXML(msg []byte) [][]byte {
 	payload := msg[66 : len(msg)-5]
 	bytes, _ := base64.StdEncoding.DecodeString(string(payload))
@@ -25,16 +25,16 @@ func stripXML(msg []byte) [][]byte {
 
 	return pmsg.GetIpfixMessage()
 }
-*/
-func Kafka() {
-	//converter := iespec.InitIpfix()
+
+func Kafka(protoMsgChan chan *protomsg.ZFlow) {
+	converter := iespec.InitIpfix()
 
 	//config := sarama.NewConfig()
 
 	//config.Consumer.Return.Errors = true
 
 	// Specify brokers address. This is default one
-	brokers := []string{"54.84.148.16:9092"}
+	brokers := []string{"ec2-107-21-70-96.compute-1.amazonaws.com:9092"}
 	//ec2-54-210-70-189.compute-1.amazonaws.com:9092
 	// Create new coeeensumer
 	master, err := sarama.NewConsumer(brokers, nil)
@@ -76,24 +76,28 @@ func Kafka() {
 
 				msgCounter++
 
-				fmt.Println(msgCounter)
+				//fmt.Println(msgCounter)
 			}
 		}(c)
 
 		go func() {
 			for msg := range msgchan {
-				//for _, ipfixList := range stripXML(msg.Value) {
-				//for _, zflowMsg := range converter.Convert(ipfixList) {
-				//fmt.Println(zflowMsg)
-				//protoMsgChan <- zflowMsg
-				fmt.Printf("Partition:\t%d\n", msg.Partition)
-				fmt.Printf("Offset:\t%d\n", msg.Offset)
-				fmt.Printf("Key:\t%s\n", string(msg.Key))
-				fmt.Printf("Value:\t%s\n", string(msg.Value))
-				fmt.Println()
+				for _, ipfixBytes := range stripXML(msg.Value) {
 
-				//}
-				//}
+					//fmt.Printf("Value:\t%v\n", ipfixBytes)
+
+					for _, zflowMsg := range converter.Convert(ipfixBytes) {
+						//fmt.Println(zflowMsg)
+						protoMsgChan <- zflowMsg
+						//fmt.Printf("Partition:\t%d\n", msg.Partition)
+						//fmt.Printf("Offset:\t%d\n", msg.Offset)
+						//fmt.Printf("Key:\t%s\n", string(msg.Key))
+
+						//fmt.Println()
+
+					}
+				}
+
 			}
 		}()
 	}

@@ -14,7 +14,7 @@ func encode(msg *protomsg.ZFlow) string {
 
 }
 func Kafka(c chan *protomsg.ZFlow) {
-	brokers := []string{"54.84.148.16:9092"}
+	brokers := []string{"ec2-107-21-70-96.compute-1.amazonaws.com:9092"}
 	producer, err := sarama.NewSyncProducer(brokers, nil)
 	if err != nil {
 		fmt.Println(err)

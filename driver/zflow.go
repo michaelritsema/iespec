@@ -7,6 +7,9 @@ import (
 	"iespec/inbound"
 	"iespec/outbound"
 	"iespec/protomsg"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 	"time"
@@ -87,7 +90,7 @@ func servehttps(address string) {
 
 func readfromkafka(address string) {
 	fmt.Printf("Reading messages for Kafka: %s", address)
-	inbound.Kafka() //broadcast)
+	go func() { inbound.Kafka(broadcast) }()
 }
 
 func readfrompcap(file string) {
@@ -113,7 +116,7 @@ func route() {
 			msg := <-broadcast
 			//fmt.Println(msg)
 			for _, v := range outChannels {
-				//fmt.Printf("routing to outbound channel [%s]\n", k)
+				//fmt.Printf("routing to outbound channel [%v,%v]\n", k, v)
 				v <- msg
 			}
 		}
@@ -165,6 +168,10 @@ func splunk(param string) {
 }
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	inboundHTTP := flag.String(INBOUND_HTTP, "", "Binds HTTP to <host:port>")
 	inboundHTTPS := flag.String(INBOUND_HTTPS, "0.0.0.0:9443", "Binds HTTPS to <host:port> (cert.pem and key.pem required in same folder)")
 	inboundKafka := flag.String(INBOUND_KAFKA, "0.0.0.0:9092:ZIFTEN.IPFIX", "Enables Inbound Kafka Topic <host:port:topic>")
@@ -177,12 +184,10 @@ func main() {
 	outboundCSV := flag.Bool(OUTBOUND_CSV, false, "Prints to STDOUT in CSV")
 
 	flag.Parse()
-
 	daemonize := false
 
-	route()
-
 	if isSet(INBOUND_HTTP) {
+		fmt.Println("http")
 		servehttp(*inboundHTTP)
 		daemonize = true
 	}
@@ -211,7 +216,9 @@ func main() {
 		outChannels[OUTBOUND_KAFKA] = c
 		kafka(c)
 	}
+
 	if *outboundJSON {
+		fmt.Println("...")
 		c := make(chan *protomsg.ZFlow)
 		outChannels[OUTBOUND_JSON] = c
 
@@ -224,6 +231,9 @@ func main() {
 
 		printCSV(c)
 	}
+
+	fmt.Printf("out channels %v\n", outChannels)
+	route()
 
 	if daemonize {
 		for {
