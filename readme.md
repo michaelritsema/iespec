@@ -6,3 +6,6 @@ protoc --go_out=plugins=grpc,import_prefix=,import_path=protomsg:$(pwd)/protomsg
 
 extract protobuf-descriptor in your $GO_ROOT folder
 
+building requirements:
+yum install libpcap-devel
+git version  > 1.7.2 (use repoforge for centos)
