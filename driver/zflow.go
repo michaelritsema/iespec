@@ -93,11 +93,6 @@ func readfromkafka(address string) {
 	go func() { inbound.Kafka(broadcast) }()
 }
 
-func readfrompcap(file string) {
-	fmt.Printf("Reading from pcap")
-	inbound.Readpcapfile(broadcast, file)
-}
-
 func serveudp(param string) {
 	fmt.Printf("Listening on UDP %s\n", param)
 	parts := strings.Split(param, ":")
@@ -176,7 +171,7 @@ func main() {
 	inboundHTTPS := flag.String(INBOUND_HTTPS, "0.0.0.0:9443", "Binds HTTPS to <host:port> (cert.pem and key.pem required in same folder)")
 	inboundKafka := flag.String(INBOUND_KAFKA, "0.0.0.0:9092:ZIFTEN.IPFIX", "Enables Inbound Kafka Topic <host:port:topic>")
 	inboundUDP := flag.String(INBOUND_UDP, "0.0.0.0:4739", "Enables UDP <host:port>")
-	inboundPCAP := flag.String(INBOUND_PCAP, "file.pcap", "PCAP file")
+	//inboundPCAP := flag.String(INBOUND_PCAP, "file.pcap", "PCAP file")
 
 	outboundSplunk := flag.String(OUTBOUND_SPLUNK, "http://localhost:8088/services/collector", "Forwards data to Splunk (http://localhost:8088/services/collector) is default")
 	outboundKafka := flag.String(OUTBOUND_KAFKA, "localhost:9092:ZIFTEN.DATACOLLECTION", "Forwards data to Kafka <host:port:topic>")
@@ -204,8 +199,8 @@ func main() {
 		daemonize = true
 	}
 	if isSet(INBOUND_PCAP) {
-		go readfrompcap(*inboundPCAP)
-		daemonize = true
+		//go readfrompcap(*inboundPCAP)
+		//daemonize = true
 	}
 	if isSet(OUTBOUND_SPLUNK) {
 		splunk(*outboundSplunk)
