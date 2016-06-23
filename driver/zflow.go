@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/golang/protobuf/jsonpb"
@@ -90,7 +92,7 @@ func servehttps(address string) {
 
 func readfromkafka(address string) {
 	fmt.Printf("Reading messages for Kafka: %s", address)
-	go func() { inbound.Kafka(broadcast) }()
+	go func() { inbound.Kafka(broadcast, address) }()
 }
 
 func readfrompcap(file string) {
@@ -131,7 +133,15 @@ func printJSON(c chan *protomsg.ZFlow) {
 
 			marshaler := jsonpb.Marshaler{}
 			jsonMsg, _ := marshaler.MarshalToString(msg)
-			fmt.Println(jsonMsg)
+			doPrettyPrint := true
+			if doPrettyPrint {
+				var prettyJSON bytes.Buffer
+				json.Indent(&prettyJSON, []byte(jsonMsg), "", "\t")
+				fmt.Println("\n" + string(prettyJSON.Bytes()))
+			} else {
+				fmt.Println(jsonMsg)
+			}
+
 		}
 	}()
 }
@@ -149,8 +159,11 @@ func printCSV(c chan *protomsg.ZFlow) {
 	}()*/
 }
 
-func kafka(c chan *protomsg.ZFlow) {
-	outbound.Kafka(c)
+func kafka(connection string) {
+	c := make(chan *protomsg.ZFlow)
+	outChannels[OUTBOUND_KAFKA] = c
+	outbound.Kafka(c, connection)
+
 }
 
 func splunk(param string) {
@@ -211,14 +224,11 @@ func main() {
 		splunk(*outboundSplunk)
 	}
 	if isSet(OUTBOUND_KAFKA) {
-		fmt.Println(*outboundKafka)
-		c := make(chan *protomsg.ZFlow)
-		outChannels[OUTBOUND_KAFKA] = c
-		kafka(c)
+		kafka(*outboundKafka)
 	}
 
 	if *outboundJSON {
-		fmt.Println("...")
+
 		c := make(chan *protomsg.ZFlow)
 		outChannels[OUTBOUND_JSON] = c
 
@@ -232,7 +242,7 @@ func main() {
 		printCSV(c)
 	}
 
-	fmt.Printf("out channels %v\n", outChannels)
+	//fmt.Printf("out channels %v\n", outChannels)
 	route()
 
 	if daemonize {
@@ -240,5 +250,6 @@ func main() {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
+	return
 
 }

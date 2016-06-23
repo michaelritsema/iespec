@@ -26,7 +26,7 @@ func stripXML(msg []byte) [][]byte {
 	return pmsg.GetIpfixMessage()
 }
 
-func Kafka(protoMsgChan chan *protomsg.ZFlow) {
+func Kafka(protoMsgChan chan *protomsg.ZFlow, connection string) {
 	converter := iespec.InitIpfix()
 
 	//config := sarama.NewConfig()
@@ -34,7 +34,9 @@ func Kafka(protoMsgChan chan *protomsg.ZFlow) {
 	//config.Consumer.Return.Errors = true
 
 	// Specify brokers address. This is default one
-	brokers := []string{"ec2-107-21-70-96.compute-1.amazonaws.com:9092"}
+	//brokers := []string{"ec2-107-21-70-96.compute-1.amazonaws.com:9092"}
+	brokers := []string{connection}
+	fmt.Println(brokers)
 	//ec2-54-210-70-189.compute-1.amazonaws.com:9092
 	// Create new coeeensumer
 	master, err := sarama.NewConsumer(brokers, nil)
@@ -49,6 +51,7 @@ func Kafka(protoMsgChan chan *protomsg.ZFlow) {
 		}
 	}()
 
+	//  only support reading ipfix messages
 	topic := "ZIFTEN.IPFIX"
 	// How to decide partition, is it fixed value...?
 	partitions, _ := master.Partitions(topic)
