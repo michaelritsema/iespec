@@ -181,6 +181,8 @@ func splunk(param string) {
 }
 
 func main() {
+	log.SetOutput(os.Stderr)
+	log.Printf("ZFlow Method started.")
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
