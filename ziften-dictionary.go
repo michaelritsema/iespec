@@ -5,7 +5,7 @@ import (
 )
 
 var MyFields = [...]ipfix.DictionaryEntry{
-	ipfix.DictionaryEntry{Name: "flowStartMilliseconds", EnterpriseID: 44619, FieldID: 152, Type: ipfix.FieldTypes["unsigned64"]},
+	//ipfix.DictionaryEntry{Name: "flowStartMilliseconds", EnterpriseID: 44619, FieldID: 152, Type: ipfix.FieldTypes["unsigned64"]},
 	ipfix.DictionaryEntry{Name: "zflowVerVersionString", EnterpriseID: 44619, FieldID: 268, Type: ipfix.FieldTypes["string"]},
 	ipfix.DictionaryEntry{Name: "zflowVerLegalTrademark", EnterpriseID: 44619, FieldID: 274, Type: ipfix.FieldTypes["string"]},
 	ipfix.DictionaryEntry{Name: "zflowParentImagePath", EnterpriseID: 44619, FieldID: 279, Type: ipfix.FieldTypes["string"]},
@@ -46,7 +46,7 @@ var MyFields = [...]ipfix.DictionaryEntry{
 	ipfix.DictionaryEntry{Name: "protocolIdentifier", EnterpriseID: 44619, FieldID: 4, Type: ipfix.FieldTypes["unsigned8"]},
 	ipfix.DictionaryEntry{Name: "destinationIPv4Address", EnterpriseID: 44619, FieldID: 12, Type: ipfix.FieldTypes["ipv4Address"]},
 	ipfix.DictionaryEntry{Name: "destinationIPv6Address", EnterpriseID: 44619, FieldID: 28, Type: ipfix.FieldTypes["ipv6Address"]},
-	ipfix.DictionaryEntry{Name: "flowEndMilliseconds", EnterpriseID: 44619, FieldID: 153, Type: ipfix.FieldTypes["unsigned64"]},
+	//ipfix.DictionaryEntry{Name: "flowEndMilliseconds", EnterpriseID: 44619, FieldID: 153, Type: ipfix.FieldTypes["unsigned64"]},
 	ipfix.DictionaryEntry{Name: "zflowPid", EnterpriseID: 44619, FieldID: 258, Type: ipfix.FieldTypes["unsigned32"]},
 	ipfix.DictionaryEntry{Name: "zflowParentMD5", EnterpriseID: 44619, FieldID: 281, Type: ipfix.FieldTypes["string"]},
 	ipfix.DictionaryEntry{Name: "zflowParentVerVersionString", EnterpriseID: 44619, FieldID: 283, Type: ipfix.FieldTypes["string"]},

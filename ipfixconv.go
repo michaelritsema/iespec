@@ -4,6 +4,7 @@ import (
 	//"fmt"
 	"github.com/michaelritsema/ipfix"
 	"iespec/protomsg"
+	_ "log"
 )
 
 type Converter struct {
@@ -17,6 +18,7 @@ func InitIpfix() (c *Converter) {
 	i := ipfix.NewInterpreter(s)
 
 	for _, entry := range MyFields {
+		//log.Println(entry)
 		i.AddDictionaryEntry(entry)
 	}
 	c = &Converter{
@@ -34,10 +36,12 @@ func (c Converter) Convert(b []byte) []*protomsg.ZFlow {
 
 	for _, rec := range msg.DataRecords {
 		//fmt.Printf("rec: %v", rec)
+
 		ifs := c.i.Interpret(rec)
+		//log.Printf("%v", ifs)
 		pmsg := ConvertFieldListToProtobuf(ifs)
 		pmsgList = append(pmsgList, pmsg)
 	}
-	//fmt.Println(pmsgList)
+	//log.Println(pmsgList)
 	return pmsgList
 }

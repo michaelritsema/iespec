@@ -5,6 +5,7 @@ import (
 	"github.com/michaelritsema/ipfix"
 	"iespec/protomsg"
 	"net"
+	"time"
 )
 
 func ConvertFieldListToProtobuf(fieldList []ipfix.InterpretedField) *protomsg.ZFlow {
@@ -30,9 +31,9 @@ func ConvertFieldListToProtobuf(fieldList []ipfix.InterpretedField) *protomsg.ZF
 		case "packetDeltaCount":
 			pmsg.PacketDeltaCount = proto.Int64(int64(field.Value.(uint64)))
 		case "flowStartMilliseconds":
-			pmsg.FlowStartMilliseconds = proto.Int64(int64(field.Value.(uint64)))
+			pmsg.FlowStartMilliseconds = proto.Int64(field.Value.(time.Time).Unix())
 		case "flowEndMilliseconds":
-			pmsg.FlowEndMilliseconds = proto.Int64(int64(field.Value.(uint64)))
+			pmsg.FlowEndMilliseconds = proto.Int64(field.Value.(time.Time).Unix())
 		case "flowDirection":
 			pmsg.FlowDirection = proto.Int64(int64(field.Value.(uint8)))
 		// string fields

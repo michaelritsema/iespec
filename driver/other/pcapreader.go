@@ -45,5 +45,6 @@ func Readpcapfile(c chan *protomsg.ZFlow, file string) {
 }
 func main() {
 	readpcapfile()
+	fmt.Println("PCAP Reader complete")
 
 }

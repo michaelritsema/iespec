@@ -6,7 +6,7 @@ import (
 	"github.com/miekg/pcap"
 	"iespec"
 	"iespec/protomsg"
-	"log"
+	_ "log"
 )
 
 func min(x uint32, y uint32) uint32 {
@@ -34,9 +34,9 @@ func Readpcapfile(c chan *protomsg.ZFlow, file string) {
 		pkt.Decode()
 		pmsgList := converter.Convert(pkt.Payload)
 		for _, msg := range pmsgList {
-			//fmt.Println(msg)
+			//log.Println(msg)
 			c <- msg
-			log.Println("Parsed PCAP and sent to broadcast channel.")
+			//log.Println("Parsed PCAP and sent to broadcast channel.")
 		}
 
 	}
