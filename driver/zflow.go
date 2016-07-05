@@ -97,7 +97,9 @@ func readfromkafka(address string) {
 
 func readfrompcap(file string) {
 	fmt.Printf("Reading from pcap")
-	inbound.Readpcapfile(broadcast, file)
+	// disabled until cross platform linking can be resolved
+	// requres libcap on liux and a different pcap lib on wndows
+	//inbound.Readpcapfile(broadcast, file)
 }
 
 func serveudp(param string) {
